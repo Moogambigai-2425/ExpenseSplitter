@@ -1,34 +1,36 @@
 package com.example.expensesplitter.controller;
 
-import com.example.expensesplitter.model.Person;
-import com.example.expensesplitter.service.PersonService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import java.net.URI;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
-
+import com.example.expensesplitter.model.Person;
+import com.example.expensesplitter.repo.PersonRepository;
 @RestController
 @RequestMapping("/api/people")
+@CrossOrigin(origins = "http://localhost:8081/")
 public class PersonController {
-    private final PersonService srv;
-    public PersonController(PersonService srv) { this.srv = srv; }
+
+    @Autowired
+    private PersonRepository personRepository;
 
     @GetMapping
-    public List<Person> list() { return srv.list(); }
-
-    @PostMapping
-    public ResponseEntity<Person> create(@Validated @RequestBody Person p) {
-        Person created = srv.create(p);
-        return ResponseEntity.created(URI.create("/api/people/" + created.getId())).body(created);
+    public List<Person> getAllPersons() {
+        return personRepository.findAll();
     }
 
-    @GetMapping("/{id}")
-    public Person get(@PathVariable String id) { return srv.get(id); }
+    @PostMapping
+    public Person addPerson(@RequestBody Person person) {
+        return personRepository.save(person);
+    }
 
     @PutMapping("/{id}")
-    public Person update(@PathVariable String id, @Validated @RequestBody Person p) { return srv.update(id, p); }
+    public Person updatePerson(@PathVariable String id, @RequestBody Person updatedPerson) {
+        updatedPerson.setId(id);  // Important: ensure ID is set
+        return personRepository.save(updatedPerson);
+    }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) { srv.delete(id); return ResponseEntity.noContent().build(); }
+    public void deletePerson(@PathVariable String id) {
+        personRepository.deleteById(id);
+    }
 }
